@@ -1,0 +1,5 @@
+#nod_modules não permite enviar todos os avarquivos base nod modules:
+node_modules/
+
+#senhas e tudo mais que não queres saber
+.env
