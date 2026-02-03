@@ -1,0 +1,7 @@
+#gitignore é usado para não subir coisas do projeto que você não quer mostra no gitHub
+
+#node_modules para não enviar essa caralhada de dependicias
+node_modules/
+
+#senhas e tudo mais que não queres saber
+.env
