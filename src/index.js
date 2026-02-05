@@ -6,8 +6,9 @@ require(`dotenv`).config();
 const app = require('./app');
 //const app = express();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3005;
 
 app.listen(PORT, () => {
     console.log(`Server rodando na porta ${PORT}`);
 });
+
