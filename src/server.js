@@ -1,15 +1,13 @@
 const express = require(`express`);
-const {pool} = require(`./config/db`);
 const app = express();
 
-app.get(`/cuponsFiscais`, async (req, res) => 
-    {
-    const [rows] = await pool.execute(`SELECT * FROM cuponsFiscais`);
-    if(rows == 0){
-        return res.status(404).json({error: `Não há cupons cadastrados!`});
-    }
-    }
-)
+const clientesRoutes = require(`./routes/clientes`);
+const cuponsRoutes = require(`./routes/cupons`);
+const restaurantesRoutes = require(`./routes/restaurantes`);
+
+app.use(`/clientes`, clientesRoutes);
+app.use(`/cupons`, cuponsRoutes);
+app.use(`/restaurantes`, restaurantesRoutes);
 
 module.exports = app;
 
