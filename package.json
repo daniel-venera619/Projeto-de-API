@@ -11,9 +11,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "cpf-cnpj-validator": "^1.0.3",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
-    "mysql2": "^3.15.3"
+    "mysql2": "^3.15.3",
+    "validar-cpf": "^3.1.1"
   },
   "devDependencies": {
     "eslint": "^9.39.1",

@@ -1,5 +1,6 @@
 const express = require(`express`);
 const {pool} = require(`../config/db`);
+const validateCpf = require('validar-cpf');
 const router = express.Router();
 
 //==== GET ====
@@ -10,6 +11,21 @@ router.get(`/`, async (req, res) => {
         res.json(rows);
         if(rows == 0){
             return res.status(404).json({error: `Não há clientes cadastrados!`});
+        }
+    }catch(error){
+        console.error(`Erro ao consultar clientes: `, error);
+        res.status(500).json({error: `Erro ao consultar clientes`, details: error.message});
+    }
+}
+)
+
+router.get(`/cpf/:cpf`, async (req, res) => {
+    const cpf = req.params.cpf;
+    try{
+        const [rows] = await pool.execute(`SELECT * FROM clientes WHERE cpf = ?`, [cpf]);
+        res.json(rows);
+        if(rows == 0){
+            return res.status(404).json({error: `Esse cliente não tem cadastrado!`});
         }
     }catch(error){
         console.error(`Erro ao consultar clientes: `, error);
@@ -61,19 +77,15 @@ router.post(`/`, async (req, res) => {
         });
     }
 
-    if(nome.length > 200){
+    if(nome.length > 50){
         return res.status(400).json({
             error: `Nome muito comprido Dom Pedro I`,
             message: `Se você não for Dom Pedro I, favor colocar nome de gente!`
         });
     }
 
-    function cpfValidation(cpf){ //Funcao para conferir se CPF contém apenas numeros de 0 a 9
-        return /^[0-9]+$/.test(cpf);
-    }
-
     //Validacao do CPF
-    if(!cpf || cpf.trim() === `` || cpf.length > 11 || cpf.length < 11 || cpfValidation(cpf)){
+    if(!cpf || !validateCpf(cpf)){
         return res.status(400).json({
             error: `CPF inválido!`,
             message: `Favor inserir o CPF corretamente (11 digitos numéricos, apenas!)`
@@ -91,16 +103,16 @@ router.post(`/`, async (req, res) => {
         }
 
         //se não haver um CPF já cadastrado: insere o novo Cliente
-        const [result] = await pool.execute('INSERT INTO clientes (cpf, nome) VALUES (?, ?)', [cpf, nome]);
+        await pool.execute('INSERT INTO clientes (cpf, nome) VALUES (?, ?)', [cpf, nome]);
 
-        const [novoCliente] = await pool.execute('SELECT * FROM clientes WHERE cpf = ?', [result.cpf]);
+        const [novoCliente] = await pool.execute('SELECT * FROM clientes WHERE cpf = ?', [cpf]);
 
         res.status(201).json({
             message: `Cliente cadastrado com Sucesso!`,
             cliente: novoCliente[0]
         });
 
-    } catch(error){
+    }catch(error){
         console.error(`Erro ao criar Cliente:`, error);
         res.status(500).json({error: `Erro ao criar cliente`, details: error.message});
     }

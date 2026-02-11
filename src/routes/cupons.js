@@ -125,4 +125,6 @@ router.delete(`/excluir-cupom-cpf/:clientesCPF/permanente`, async (req, res) => 
 })
 
 //==== POSTs ====
+
+
 module.exports = router;

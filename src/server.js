@@ -1,13 +1,13 @@
 const express = require(`express`);
 const app = express();
 
-//const clientesRoutes = require(`./routes/clientes`);
+const clientesRoutes = require(`./routes/clientes`);
 const cuponsRoutes = require(`./routes/cupons`);
-//const restaurantesRoutes = require(`./routes/restaurantes`);
+const restaurantesRoutes = require(`./routes/restaurantes`);
 
-//app.use(`/clientes`, clientesRoutes);
+app.use(`/clientes`, clientesRoutes);
 app.use(`/cupons`, cuponsRoutes);
-//app.use(`/restaurantes`, restaurantesRoutes);
+app.use(`/restaurantes`, restaurantesRoutes);
 
 module.exports = app;
 
