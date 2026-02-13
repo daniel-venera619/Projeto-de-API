@@ -89,7 +89,7 @@ router.post(`/`, async (req, res) => {
     }
 
     //Validacao do CPF
-    if(!cpf || !validateCpf.validate(cpf)){
+    if(!cpf || validateCpf.validate(cpf)){
         return res.status(400).json({
             error: `CPF inválido!`,
             message: `Favor inserir o CPF corretamente (11 digitos numéricos, apenas!)`

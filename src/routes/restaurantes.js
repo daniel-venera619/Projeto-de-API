@@ -120,4 +120,83 @@ router.post(`/`, async (req, res) => {
     }
 })
 
+// ==== PUT ====
+
+router.put(`/:cnpj`, async (req, res) => {
+    const cnpjRest = req.params.cnpj;
+
+    const { cnpj, nomeFantasia } = req.body;
+
+    try{
+        const [restauranteExistente] = await pool.execute('SELECT * FROM restaurantes WHERE cnpj = ?', [cnpjRest]);
+        if(restauranteExistente.length === 0){
+            res.status(404).json({error: "Restaurante não cadastrado!"});
+        }
+
+        if(cnpj !== undefined){
+            if(!cnpj || !validateCnpj.validate(cnpj)){
+                return res.status(400).json({
+                    error: "Forneça um CNPJ válido"
+                });
+            }
+        }
+
+        if(nomeFantasia !== undefined){
+            if(!nomeFantasia || nomeFantasia.trim() === ""){
+                return res.status(400).json({
+                    error: "Forneça um Nome Fantasia Válido!"
+                })
+            }
+
+            const [nomeFantasiaExistente] = await pool.execute('SELECT * FROM restaurantes WHERE nomeFantasia = ?', [nomeFantasia]);
+            if(nomeFantasiaExistente.length === 1){
+                const [nomeFantasiaOwner] = await pool.execute('SELECT cnpj FROM restaurante WHERE nomeFantasia = ?', [nomeFantasiaExistente]);
+                return res.status(400).json({
+                    error: "Nome Fantasia já em uso por outro restaurante! Forneça um diferente.",
+                    message: `O Restaurante a qual o nome pertence é o: ${nomeFantasiaOwner} `
+                });
+            }
+        }
+
+        const campos = [];
+        const valores = [];
+
+        if(cnpj !== undefined){
+            campos.push('cnpj = ?');
+            valores.push(cnpj);
+        }
+
+        if(nomeFantasia !== undefined){
+            campos.push('nomeFantasia = ?');
+            valores.push(nomeFantasia);
+        }
+
+        if(valores.length === 0){
+            res.status(400).json({
+                error: "Nenhum campo para se atualizar",
+                message: "Se quiser atualizar, insira ao menos UM campo"
+            });
+        }
+
+        const update = await pool.execute(`UPDATE restaurantes SET ${campos.join(', ')} WHERE cnpj = ?`)
+        const [result] = await pool.execute(update, cnpjRest);
+
+        if(result.length === 0){
+            res.status(400).json({
+                error: "Restaurante não encontrado"
+            });
+        }
+
+        res.json({
+            message: "Restaurante atualizado com sucesso!",
+            restaurante: valores[1],
+            campos: campos.length
+        });
+
+    }catch(error){
+        console.error(`Erro ao Atualizar Restaurante:`, error);
+        res.status(500).json({error: `Erro ao atualizar Restaurante`, details: error.message});
+    }
+
+})
 module.exports = router;
