@@ -58,5 +58,3 @@ DROP TABLE cuponsFiscais;
 SELECT * FROM clientes;
 SELECT * FROM cuponsFiscais;
 SELECT * FROM cuponsFiscais WHERE clientesCpf = 12345678901;
-
-DROP TABLE cuponsFiscais;

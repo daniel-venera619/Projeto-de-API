@@ -129,12 +129,13 @@ router.post(`/`, async (req, res) => { //FALTA FAZER A DATA
     req.body.cpfCliente = String(req.body.cpfCliente || '').replace(/\D/g, '');
 
     //Limpeza do Valor
-    req.body.valor = parseFloat(req.body.valor).toFixed(2).replace(",", ".");
+    //req.body.valor = parseFloat(req.body.valor).toFixed(2).replace(",", ".");
 
     // Validação com o schema
     const { error, value } = cuponsSchema.validate(req.body);
 
     if (error) {
+        console.log(error);
         return res.status(400).json({
             error: `Dados inválidos!`,
             message: "CNPJ/CPF inválido ou Nome Fantasia fora do padrão."
@@ -192,30 +193,29 @@ router.post(`/`, async (req, res) => { //FALTA FAZER A DATA
 router.put(`/atualizar-cupom/:idCupom`, async (req, res) => {
     const idCupom = req.params.idCupom;
 
+    if(req.body === undefined){
+        res.status(400).json({message: `Nenhum campo para atualizar informado!`});
+    }
+
+    const { valor, data, cpfCliente, nomeCliente, cnpjRestaurante, nomeFantasia } = req.body;
+
     const campos = [];
     const valores = [];
 
-    if(req.body.cnpjRestaurante !== undefined){
-        // Limpeza do CNPJ
-        req.body.cnpjRestaurante = String(req.body.cnpjRestaurante || '').replace(/\D/g, '');
-    }
+    // Limpeza do CNPJ
+    req.body.cnpjRestaurante = String(req.body.cnpjRestaurante || '').replace(/\D/g, '');
 
-    if(req.body.cpfCliente !== undefined){
-        // Limpeza do CPF
-        req.body.cpfCliente = String(req.body.cpfCliente || '').replace(/\D/g, '');
-    }
-    
+    // Limpeza do CPF
+    req.body.cpfCliente = String(req.body.cpfCliente || '').replace(/\D/g, '');
+
     // Validação com o schema
-    const { error, value } = cuponsSchema.validate(req.body);
-
+    const { error } = cuponsSchema.validate(req.body);
     if (error) {
         return res.status(400).json({
             error: `Dados inválidos!`,
-            message: "CNPJ/CPF inválido ou Nome Fantasia fora do padrão."
+            message: "Dado(s) sensível(eis) inválido(s) ou Nome Fantasia fora do padrão."
         });
     }
-
-    const { valor, data, cpfCliente, nomeCliente, cnpjRestaurante, nomeFantasia } = value;
 
     try {
         const [rows] = await pool.execute(`SELECT * FROM cuponsFiscais WHERE idCupom = ?`, [idCupom]);
@@ -226,33 +226,38 @@ router.put(`/atualizar-cupom/:idCupom`, async (req, res) => {
         res.status(500).json({ error: `Erro ao consultar cupom para atualização`, details: error });
     }
 
-    if(valor !== undefined) {
-        campos.push(`valorTotal = ?`);
-        valores.push(valor);
-    }
-    if(data !== undefined) {
-        campos.push(`dataCompra = ?`);
-        valores.push(data);
-    }
-    if(cpfCliente !== undefined) {
-        campos.push(`clientesCpf = ?`);
-        valores.push(cpfCliente);
-    }
-    if(nomeCliente !== undefined) {
-        campos.push(`clientesNome = ?`);
-        valores.push(nomeCliente);
-    }
-    if(cnpjRestaurante !== undefined) {
-        campos.push(`restaurantesCNPJ = ?`);
-        valores.push(cnpjRestaurante);
-    }
-    if(nomeFantasia !== undefined) {
-        campos.push(`restaurantesNome = ?`);
-        valores.push(nomeFantasia);
-    }
+    try{
 
-    if(campos.length === 0) {
-        return res.status(400).json({ error: `Nenhum campo para atualizar informado.` });
+        if(valor !== undefined) {
+            campos.push(`valorTotal = ?`);
+            valores.push(valor);
+        }
+        if(data !== undefined) {
+            campos.push(`dataCompra = ?`);
+            valores.push(data);
+        }
+        if(cpfCliente !== undefined) {
+            campos.push(`clientesCpf = ?`);
+            valores.push(cpfCliente);
+        }
+        if(nomeCliente !== undefined) {
+            campos.push(`clientesNome = ?`);
+            valores.push(nomeCliente);
+        }
+        if(cnpjRestaurante !== undefined) {
+            campos.push(`restaurantesCNPJ = ?`);
+            valores.push(cnpjRestaurante);
+        }
+        if(nomeFantasia !== undefined) {
+            campos.push(`restaurantesNome = ?`);
+            valores.push(nomeFantasia);
+        }
+
+        if(campos.length === 0) {
+            return res.status(400).json({ error: `Nenhum campo para atualizar informado.` });
+        }
+    }catch(error){
+        res.status(400).json({error: `Erro ao colocar valores e campos nas listas`, details: error});
     }
 
     valores.push(idCupom); // Para o WHERE
@@ -264,6 +269,7 @@ router.put(`/atualizar-cupom/:idCupom`, async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: `Erro ao atualizar Cupom Fiscal`, details: error.message });
     }
+
 });
 
 module.exports = router;
